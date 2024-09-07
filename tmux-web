@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+help() {
+    echo "tmux-web - Open and run a command in multiple tmux panes"
+    echo ""
+    echo "Usage: tmux-web <NB_PANES> [COMMAND_TO_RUN]"
+}
+
+if [[ ! "$1" -ge 1 ]]; then
+    echo "Error: Number of panes must be a number greater than or equal to 1"
+    echo ""
+    help
+    exit 1
+fi
+
+finish_command="echo ''; echo ''; echo 'Command done... sleeping'; sleep infinity"
+command_to_run="${2:-echo 'Nothing to run...'}; $finish_command"
+
+split_window() {
+    tmux split-window \
+        -d -c "#{pane_current_path}" -P -F "#{pane_id}" "$@" "$command_to_run"
+}
+
+initial_pane_id=$(split_window -f -h)
+pane_ids=("$initial_pane_id")
+
+cleanup() {
+    for pane_id in "${pane_ids[@]}"; do
+        tmux kill-pane -t "$pane_id"
+    done
+}
+
+trap cleanup INT
+
+panes_to_create=$(("$1" - 1))
+nb_rows=$(((panes_to_create / 2) + 1))
+nb_columns=$(((panes_to_create / nb_rows) + 1))
+
+for ((i = 1; i < nb_rows; i++)); do
+    pane_ids+=("$(split_window -v -t "$initial_pane_id")")
+done
+
+if [[ $((panes_to_create % 2)) -eq 0 ]]; then
+    rows_to_split="${pane_ids[*]::$((${#pane_ids[@]} - 1))}"
+else
+    rows_to_split="${pane_ids[*]}"
+fi
+
+for pane_id in $rows_to_split; do
+    for ((i = 1; i < nb_columns; i++)); do
+        pane_ids+=("$(split_window -h -t "$pane_id")")
+    done
+done
+
+echo "Panes created, press Ctrl+C to close everything"
+sleep infinity
