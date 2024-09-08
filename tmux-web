@@ -37,7 +37,12 @@ nb_rows=$(((panes_to_create / 2) + 1))
 nb_columns=$(((panes_to_create / nb_rows) + 1))
 
 for ((i = 1; i < nb_rows; i++)); do
-    pane_ids+=("$(split_window -v -t "$initial_pane_id")")
+    for pane_id in "${pane_ids[@]}"; do
+        if [[ ${#pane_ids[@]} -eq $nb_rows ]]; then
+            break
+        fi
+        pane_ids+=("$(split_window -v -t "$pane_id")")
+    done
 done
 
 if [[ $((panes_to_create % 2)) -eq 0 ]]; then
