@@ -1,2 +1,2 @@
 # tmux-web
-Tmux script to open several panes and run a command in them all, linking them all together
+Tmux script to open several panes, run a command in them all and synchronizing the exit 
