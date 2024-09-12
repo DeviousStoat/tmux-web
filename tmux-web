@@ -26,6 +26,7 @@ pane_ids=("$initial_pane_id")
 
 cleanup() {
     for pane_id in "${pane_ids[@]}"; do
+        tmux send-keys -t "$pane_id" C-c
         tmux kill-pane -t "$pane_id"
     done
 }
